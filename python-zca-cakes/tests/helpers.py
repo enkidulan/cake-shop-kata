@@ -1,6 +1,9 @@
 import arrow
 
+
 def convert_to_date(day, base_time=None):
+    if base_time:
+        base_time = arrow.get(base_time)
     part_of_a_day = 0
     if not base_time:
         base_time = arrow.get("2021.04.01")
@@ -16,9 +19,12 @@ def convert_to_date(day, base_time=None):
         base_time = base_time.shift(days=7)
     if day not in arrow.locales.EnglishLocale.day_names:
         try:
-            return arrow.get(day, "D MMMM YYYY")
+            return arrow.get(
+                day,
+                "D MMMM YYYY",
+            ).datetime
         except Exception:
-            return arrow.get(day)
+            return arrow.get(day).datetime
     weekday = arrow.locales.EnglishLocale.day_names.index(day) - 1
     base_time = base_time.shift(hours=part_of_a_day)
-    return base_time.shift(weekday=weekday)
+    return base_time.shift(weekday=weekday).datetime

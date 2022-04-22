@@ -1,6 +1,8 @@
 *** Settings ***
 Library    python_zca_cakes
 Library    helpers.py
+Suite Setup    Bootstrap Cake Shop
+
 
 *** Test Cases ***
 The delivery date for a cake is the order date plus the lead time
@@ -98,7 +100,7 @@ Nuts can only be added after frosting, as nobody wants frosty nuts
     And Marco adds nuts on Monday
 
 *** Test Cases ***
-Cakes that would be complete before 23rd of December will be unable to start production until 2nd of January
+Cakes that will not be complete before 23rd of December will be unable to start production until 2nd of January
     When an order for a small cake placed on 22 December 2022
     Then the order has a delivery date of 3 January 2023
     And Marco bakes the cake 2 January 2023, 3 January 2023
@@ -134,31 +136,31 @@ an order for a ${size} cake placed on ${day}
     ${cake_order} =   Place Cake Order   cake_size=${size}   order_time=${normalized_day}
     Set Test Variable  ${cake_order}
 the cake should have custom frosting
-    ${cake_order.frosting} =    Set Variable    True
+    ${cake_order.add_frosting} =    Set Variable    True
 the cake should be decorated with nuts
-    ${cake_order.with_nuts} =    Set Variable    True
+    ${cake_order.add_nuts} =    Set Variable    True
 the cake should arrive in a fancy box
-    ${cake_order.fancy_box} =    Set Variable    True
+    ${cake_order.add_fancy_box} =    Set Variable    True
 the order has a delivery date of ${day}
     ${normalized_day}=   Convert To Date     ${day}    ${cake_order.order_time}
     ${delivery_date}=    Calculate Delivery Date       ${cake_order}
     Should Be Equal
-    ...  ${delivery_date.format('YYYY-MM-DD dddd')}
-    ...  ${normalized_day.format('YYYY-MM-DD dddd')}
-    ...  ${cake_order} has ${delivery_date.format('YYYY-MM-DD dddd')} delivery date instead of expected ${normalized_day.format('YYYY-MM-DD dddd')}
+    ...  ${delivery_date.strftime('%Y-%m-%d %a')}
+    ...  ${normalized_day.strftime('%Y-%m-%d %a')}
+    ...  ${cake_order} has ${delivery_date.strftime('%Y-%m-%d %a')} delivery date instead of expected ${normalized_day.strftime('%Y-%m-%d %a')}
 And ${person} ${action} the cake ${days}
     FOR    ${day}    IN    @{days.split(',')}
         ${normalized_day}=    Convert To Date     ${day}    ${cake_order.order_time}
-        Should Be True   ['${person}', '${action}', '${normalized_day}'] in ${cake_order.worklog}
+        Should Be True   ['${person}', '${action}', '${normalized_day.strftime('%Y-%m-%d')}'] in ${cake_order.baking_schedule}
     END
 and Marco could bake cakes on the December 21 and 22
     LOG   Marco could bake the cake on the
 the box arrives ${day}
     ${normalized_day}=    Convert To Date     ${day}    ${cake_order.order_time}
-    Should Be True   ['box arrives', '${normalized_day}'] in ${cake_order.worklog}
+    Should Be True   ['box arrives', '${normalized_day.strftime('%Y-%m-%d')}'] in ${cake_order.baking_schedule}
 And ${person} adds nuts on ${day}
     ${normalized_day}=    Convert To Date     ${day}    ${cake_order.order_time}
-    Should Be True   ['${person}', 'adds nuts', '${normalized_day}'] in ${cake_order.worklog}
+    Should Be True   ['${person}', 'adds nuts', '${normalized_day.strftime('%Y-%m-%d')}'] in ${cake_order.baking_schedule}
 ${person} comes back from holiday ${day}
     Should Be Equal     ${day}   1
 ${person} could bake the cake on ${day}
